@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Theme Switcher</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface-2: #242424;
+    --surface-3: #2e2e2e;
+    --border: #333;
+    --border-active: #555;
+    --text-primary: #f0f0f0;
+    --text-secondary: #888;
+    --accent: #4f8ef7;
+    --accent-hover: #3a7ae0;
+    --accent-muted: rgba(79,142,247,0.12);
+    --success: #4caf78;
+    --error: #f47373;
+    --warning: #f5a623;
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+
+  /* Header */
+  .header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-icon {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: linear-gradient(135deg, #4f8ef7, #9c27b0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .header-title { font-size: 13px; font-weight: 600; }
+  .header-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-secondary); border-radius: 5px;
+    padding: 3px 7px; cursor: pointer; font-size: 11px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--border-active); color: var(--text-primary); }
+
+  /* Tab bar */
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1; padding: 8px 4px; text-align: center;
+    font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Section */
+  .section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin-bottom: 7px; display: flex; align-items: center; gap: 5px;
+  }
+  .tier-badge {
+    background: var(--surface-3); color: var(--text-secondary);
+    border-radius: 3px; padding: 1px 5px; font-size: 9px;
+    letter-spacing: 0; text-transform: none; font-weight: 500;
+  }
+  .tier-badge.t1 { background: rgba(79,142,247,0.15); color: #6aa8ff; }
+  .tier-badge.t2 { background: rgba(156,39,176,0.15); color: #ce7fe8; }
+  .tier-badge.t3 { background: rgba(76,175,80,0.15); color: #7dd87f; }
+
+  /* Pill group */
+  .pill-group { display: flex; gap: 5px; flex-wrap: wrap; }
+  .pill {
+    cursor: pointer; padding: 4px 11px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-secondary); font-size: 12px; font-weight: 500;
+    transition: all 0.15s; user-select: none; white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--border-active); color: var(--text-primary); }
+  .pill.active { background: var(--accent-muted); border-color: var(--accent); color: var(--accent); }
+  .pill.t2.active { background: rgba(156,39,176,0.12); border-color: #9c27b0; color: #ce7fe8; }
+  .pill.t3.active { background: rgba(76,175,80,0.12); border-color: #4caf50; color: #7dd87f; }
+  .pill-empty { font-size: 11px; color: var(--text-secondary); font-style: italic; padding: 4px 0; }
+
+  /* Gradient grid */
+  .gradient-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .grad-swatch {
+    cursor: pointer; border-radius: var(--radius-sm); height: 48px;
+    border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+    position: relative; overflow: hidden;
+  }
+  .grad-swatch:hover { transform: scale(1.03); }
+  .grad-swatch.active { border-color: var(--accent); }
+  .grad-swatch .grad-label {
+    position: absolute; bottom: 4px; left: 0; right: 0;
+    text-align: center; font-size: 10px; font-weight: 600;
+    color: rgba(255,255,255,0.9); text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .grad-none {
+    background: var(--surface-2); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: 11px; font-weight: 500;
+  }
+  .grad-none.active { border-color: var(--accent); color: var(--accent); }
+
+  /* Scope toggle */
+  .scope-toggle {
+    display: flex; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden;
+  }
+  .scope-btn {
+    flex: 1; padding: 5px; background: transparent; border: none;
+    color: var(--text-secondary); font-size: 11px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scope-btn.active { background: var(--surface-3); color: var(--text-primary); }
+  .scope-btn + .scope-btn { border-left: 1px solid var(--border); }
+
+  /* Apply */
+  .apply-wrap { padding: 10px 14px 12px; }
+  .apply-btn {
+    width: 100%; padding: 9px; border-radius: var(--radius);
+    border: none; background: var(--accent); color: #fff;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .apply-btn:hover { background: var(--accent-hover); }
+  .apply-btn:active { transform: scale(0.98); }
+  .apply-btn:disabled { background: var(--surface-3); color: var(--text-secondary); cursor: not-allowed; }
+
+  /* Log */
+  .log-area {
+    margin: 0 14px 12px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 7px 9px; min-height: 48px; max-height: 80px; overflow-y: auto;
+  }
+  .log-entry {
+    font-size: 11px; color: var(--text-secondary);
+    line-height: 1.7; display: flex; align-items: flex-start; gap: 5px;
+  }
+  .log-entry.ok { color: var(--success); }
+  .log-entry.err { color: var(--error); }
+
+  /* Settings panel — collection mapping */
+  .setting-row {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 5px;
+  }
+  select {
+    width: 100%; padding: 6px 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: var(--radius-sm);
+    font-size: 12px; cursor: pointer; outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 9px center;
+  }
+  select:focus { border-color: var(--accent); }
+  .setting-meta { font-size: 10px; color: var(--text-secondary); }
+
+  /* Loading */
+  .loading { text-align: center; padding: 48px 14px; color: var(--text-secondary); font-size: 12px; }
+  .dot-pulse { display: inline-flex; gap: 4px; margin-top: 8px; }
+  .dot-pulse span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); animation: pulse 1.2s infinite;
+  }
+  .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+  .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  /* Setup banner */
+  .setup-banner {
+    margin: 10px 14px 0; padding: 9px 11px;
+    background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.25);
+    border-radius: var(--radius-sm); font-size: 11px; color: var(--warning); line-height: 1.5;
+  }
+  .setup-btn {
+    margin-top: 6px; padding: 4px 10px; border-radius: 4px;
+    border: 1px solid var(--warning); background: transparent;
+    color: var(--warning); font-size: 11px; cursor: pointer; display: block;
+  }
+  .setup-btn:hover { background: rgba(245,166,35,0.1); }
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  Reading collections…
+  <div class="dot-pulse"><span></span><span></span><span></span></div>
+</div>
+
+<div id="app" style="display:none">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">🎨</div>
+      <div class="header-title">Theme Switcher</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="refresh()" title="Re-read collections from Figma">↺ Refresh</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-switch" onclick="showTab('switch')">Switch</div>
+    <div class="tab" id="tab-settings" onclick="showTab('settings')">Settings</div>
+  </div>
+
+  <!-- ── Switch Panel ── -->
+  <div class="panel active" id="panel-switch">
+
+    <div id="no-collections-banner" class="setup-banner" style="display:none">
+      ⚠️ No variable collections found in this file.
+      <button class="setup-btn" onclick="setupLibrary()">Generate Token Library</button>
+    </div>
+
+    <!-- Tier 1: Parent Theme -->
+    <div class="section">
+      <div class="section-label">
+        <span id="tier1-label">Parent Theme</span>
+        <span class="tier-badge t1">Tier 1</span>
+      </div>
+      <div class="pill-group" id="tier1-pills">
+        <span class="pill-empty">No collection assigned</span>
+      </div>
+    </div>
+
+    <!-- Tier 2: Sub-Brand -->
+    <div class="section" id="tier2-section">
+      <div class="section-label">
+        <span id="tier2-label">Sub-Brand</span>
+        <span class="tier-badge t2">Tier 2</span>
+      </div>
+      <!-- collection selector for switching between available sub-brand collections -->
+      <select id="tier2-collection-select" onchange="onTier2CollectionChanged()" style="width:100%;margin-bottom:0;padding:6px 8px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);"></select>
+      <div class="pill-group" id="tier2-pills" style="margin-top:7px;"></div>
+    </div>
+
+    <!-- Tier 3: Gradient -->
+    <div class="section">
+      <div class="section-label">
+        Gradient Style
+        <span class="tier-badge t3">Tier 3 · Paint Styles</span>
+      </div>
+      <div class="gradient-grid" id="gradient-grid"></div>
+    </div>
+
+    <!-- Scope -->
+    <div class="section" style="padding-bottom:8px; border-bottom:none;">
+      <div class="section-label">Apply To</div>
+      <div class="scope-toggle">
+        <button class="scope-btn active" id="scope-page" onclick="setScope('page')">📄 Entire Page</button>
+        <button class="scope-btn" id="scope-selection" onclick="setScope('selection')">⬚ Selection</button>
+      </div>
+    </div>
+
+    <div class="apply-wrap">
+      <button class="apply-btn" id="apply-btn" onclick="applyTheme()">Apply Theme</button>
+    </div>
+
+    <div class="log-area" id="log-area">
+      <div class="log-entry">Ready — configure tiers above and click Apply.</div>
+    </div>
+
+  </div>
+
+  <!-- ── Settings Panel ── -->
+  <div class="panel" id="panel-settings">
+
+    <div class="setting-row">
+      <div class="setting-label">
+        Tier 1 — Parent Theme
+        <span class="tier-badge t1">modes = themes</span>
+      </div>
+      <select id="tier1-select" onchange="onCollectionAssigned()"></select>
+      <div class="setting-meta" id="tier1-meta">—</div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">
+        Tier 2 — Sub-Brand
+        <span class="tier-badge t2">modes = brands</span>
+      </div>
+      <select id="tier2-select" onchange="onCollectionAssigned()"></select>
+      <div class="setting-meta" id="tier2-meta">—</div>
+    </div>
+
+    <div class="setting-row" style="border-bottom:none; padding-top:14px;">
+      <div class="setting-label" style="margin-bottom:4px;">About Tier 3</div>
+      <div class="setting-meta" style="line-height:1.6;">
+        Gradients are managed as <strong style="color:var(--text-primary)">Paint Styles</strong> by this plugin.
+        Any layer using a <code style="color:var(--accent)">gradient/</code> style name will update when you switch sets.
+        No collection mapping needed.
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label" style="margin-bottom:4px;">Seed Token Library</div>
+      <div class="setting-meta" style="margin-bottom:6px; line-height:1.6;">
+        Creates Foundation, Semantic, and SubBrand collections with MUI color tokens.
+        Only needed on a fresh file.
+      </div>
+      <button class="setup-btn" style="margin-top:0;" onclick="setupLibrary()">Generate Token Library</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const GRADIENT_PREVIEWS = {
+    "None":   null,
+    "Vivid":  "linear-gradient(135deg, #4078ff, #8726f3)",
+    "Sunset": "linear-gradient(135deg, #ff6b35, #f20079)",
+    "Forest": "linear-gradient(135deg, #21b374, #0d6b49)",
+    "Aurora": "linear-gradient(135deg, #66e5f2, #8c4df2, #1be6a0)",
+  };
+
+  let state = {
+    tier1CollectionId: null,
+    tier1Mode: null,
+    tier2CollectionId: null,
+    tier2Mode: null,
+    gradientSet: "None",
+    scope: "page",
+    allCollections: [],
+    tier1Name: "",
+    tier2Name: "",
+  };
+
+  // ── Tab switching ─────────────────────────────────────────
+  function showTab(name) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("tab-" + name).classList.add("active");
+    document.getElementById("panel-" + name).classList.add("active");
+  }
+
+  // ── Message handling ──────────────────────────────────────
+  window.onmessage = (event) => {
+    console.log("UI received message", event.data);
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+
+    switch (msg.type) {
+      case "INIT_DATA":
+        handleInitData(msg.data);
+        break;
+
+      case "COLLECTIONS_ASSIGNED": {
+        // Settings panel told us new modes to display; also possibly new collection list
+        const prevTier1Mode = state.tier1Mode;
+        state.tier1Mode = null;
+        state.tier2Mode = null;
+        state.tier1CollectionId = msg.tier1Id || state.tier1CollectionId;
+        state.tier2CollectionId = msg.tier2Id || null;
+        if (msg.subBrandCollections) {
+          state.subBrandCollections = msg.subBrandCollections;
+          populateTier2SwitchSelect(state.subBrandCollections, state.tier2CollectionId);
+          populateSettingsTier2Select(state.subBrandCollections, state.tier2CollectionId);
+        }
+        renderTierPills("tier1", msg.tier1Modes, "t1");
+        // Restore the user's tier1 mode selection if it still exists in the new modes list
+        if (prevTier1Mode && msg.tier1Modes && msg.tier1Modes.includes(prevTier1Mode)) {
+          document.querySelectorAll("#tier1-pills .pill").forEach(p => {
+            p.classList.toggle("active", p.textContent === prevTier1Mode);
+          });
+          state.tier1Mode = prevTier1Mode;
+        }
+        renderTierPills("tier2", msg.tier2Modes || [], "t2");
+        state.tier1Name = msg.tier1Name;
+        state.tier2Name = msg.tier2Name;
+        updateSectionLabels();
+        updateMeta();
+        updateTier2Visibility();
+        showTab("switch");
+        break;
+      }
+
+      case "APPLY_RESULT":
+        renderLog(msg.results);
+        document.getElementById("apply-btn").disabled = false;
+        document.getElementById("apply-btn").textContent = "Apply Theme";
+        break;
+
+      case "SETUP_DONE":
+        handleInitData(msg.data);
+        addSingleLog("✅ Token library created. Collections loaded.", "ok");
+        break;
+    }
+  };
+
+  function handleInitData(data) {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    state.allCollections = data.collections || [];
+    state.subBrandCollections = data.subBrandCollections || [];
+    state.tier1CollectionId = data.tier1Id;
+    state.tier2CollectionId = data.tier2Id;
+    state.tier1Name = data.tier1Name || "";
+    state.tier2Name = data.tier2Name || "";
+
+    updateTier2Visibility();
+
+    // Show "no collections" banner if needed
+    const noBanner = document.getElementById("no-collections-banner");
+    noBanner.style.display = data.collections.length === 0 ? "block" : "none";
+
+    // Populate settings selects (tier1 uses all collections)
+    populateCollectionSelects(data.collections, data.tier1Id);
+    // settings panel tier2 only shows sub‑brand collections
+    populateSettingsTier2Select(state.subBrandCollections, data.tier2Id);
+
+    // Populate switch‑panel tier2 select with only sub‑brands
+    populateTier2SwitchSelect(state.subBrandCollections, data.tier2Id);
+
+    // Render tier pills from modes
+    renderTierPills("tier1", data.tier1Modes || [], "t1");
+    renderTierPills("tier2", data.tier2Modes || [], "t2");
+
+    // Render gradient grid
+    renderGradientGrid(data.gradientSets || Object.keys(GRADIENT_PREVIEWS));
+
+    updateSectionLabels();
+    updateMeta();
+  }
+
+  function populateCollectionSelects(collections, tier1Id) {
+    const s1 = document.getElementById("tier1-select");
+    const s2 = document.getElementById("tier2-select");
+    s1.innerHTML = "";
+    s2.innerHTML = "";
+
+    if (collections.length === 0) {
+      const opt = () => { const o = document.createElement("option"); o.textContent = "(no collections)"; return o; };
+      s1.appendChild(opt()); s2.appendChild(opt());
+      return;
+    }
+
+    for (const col of collections) {
+      const makeOpt = () => {
+        const o = document.createElement("option");
+        o.value = col.id;
+        o.textContent = `${col.name} (${col.variableCount} vars · ${col.modes.length} modes)`;
+        return o;
+      };
+      s1.appendChild(makeOpt());
+      // we intentionally leave s2 empty here; tier2 is populated separately
+    }
+
+    if (tier1Id) s1.value = tier1Id;
+  }
+
+  function populateSettingsTier2Select(subBrandCols, tier2Id) {
+    const sel = document.getElementById("tier2-select");
+    sel.innerHTML = "";
+    if (!subBrandCols || subBrandCols.length === 0) {
+      if (tier2Id) {
+        const c = state.allCollections.find((c) => c.id === tier2Id);
+        if (c) {
+          const o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = c.name;
+          sel.appendChild(o);
+          sel.value = tier2Id;
+          return;
+        }
+      }
+      const o = document.createElement("option");
+      o.textContent = "(no sub‑brand collections)";
+      sel.appendChild(o);
+      return;
+    }
+
+    for (const col of subBrandCols) {
+      const o = document.createElement("option");
+      o.value = col.id;
+      o.textContent = col.name;
+      sel.appendChild(o);
+    }
+    if (tier2Id) {
+      sel.value = tier2Id;
+    } else if (sel.options.length > 0) {
+      sel.value = sel.options[0].value;
+    }
+  }
+
+  // populate the dropdown that appears in the switch panel (only sub‑brand collections)
+  function populateTier2SwitchSelect(subBrandCols, tier2Id) {
+    const sel = document.getElementById("tier2-collection-select");
+    if (!sel) return;
+    sel.innerHTML = "";
+    if (!subBrandCols || subBrandCols.length === 0) {
+      if (tier2Id) {
+        const c = state.allCollections.find((c) => c.id === tier2Id);
+        if (c) {
+          const o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = c.name;
+          sel.appendChild(o);
+          sel.value = tier2Id;
+          return;
+        }
+      }
+      const o = document.createElement("option");
+      o.textContent = "(no sub‑brand collections)";
+      sel.appendChild(o);
+      return;
+    }
+
+    for (const col of subBrandCols) {
+      const o = document.createElement("option");
+      o.value = col.id;
+      o.textContent = col.name;
+      sel.appendChild(o);
+    }
+    if (tier2Id) {
+      sel.value = tier2Id;
+    } else if (sel.options.length > 0) {
+      sel.value = sel.options[0].value;
+    }
+  }
+
+  function onCollectionAssigned() {
+    const tier1Id = document.getElementById("tier1-select").value;
+    let tier2Id = document.getElementById("tier2-select").value;
+    if (!tier2Id || tier2Id === tier1Id) tier2Id = null;
+    state.tier1CollectionId = tier1Id;
+    state.tier2CollectionId = tier2Id;
+    state.tier1Mode = null;
+    state.tier2Mode = null;
+
+    parent.postMessage({
+      pluginMessage: { type: "ASSIGN_COLLECTIONS", tier1Id, tier2Id }
+    }, "*");
+  }
+
+  function onTier2CollectionChanged() {
+    let tier2Id = document.getElementById("tier2-collection-select").value;
+    if (!tier2Id || tier2Id === state.tier1CollectionId) tier2Id = null;
+    state.tier2CollectionId = tier2Id;
+    state.tier2Mode = null;
+    // leave tier1 unchanged
+    parent.postMessage({
+      pluginMessage: { type: "ASSIGN_COLLECTIONS", tier1Id: state.tier1CollectionId, tier2Id }
+    }, "*");
+  }
+
+  function updateSectionLabels() {
+    const t1label = document.getElementById("tier1-label");
+    const t2label = document.getElementById("tier2-label");
+    t1label.textContent = state.tier1Name ? `${state.tier1Name}` : "Parent Theme";
+    t2label.textContent = state.tier2Name ? `${state.tier2Name}` : "Sub-Brand";
+  }
+
+  function updateMeta() {
+    const t1col = state.allCollections.find(c => c.id === state.tier1CollectionId);
+    const t2col = state.allCollections.find(c => c.id === state.tier2CollectionId);
+    document.getElementById("tier1-meta").textContent =
+      t1col ? `${t1col.variableCount} variables · ${t1col.modes.length} modes` : "—";
+    document.getElementById("tier2-meta").textContent =
+      t2col ? `${t2col.variableCount} variables · ${t2col.modes.length} modes` : "—";
+  }
+
+  // hide tier2 section when no distinct sub-brand is assigned
+  function updateTier2Visibility() {
+    const section = document.getElementById("tier2-section");
+    if (!section) return;
+    const hide =
+      !state.tier2CollectionId ||
+      state.tier2CollectionId === state.tier1CollectionId;
+    section.style.display = hide ? "none" : "";
+  }
+
+  // ── Pill renderers ────────────────────────────────────────
+  function renderTierPills(tier, modes, cssClass) {
+    const container = document.getElementById(`${tier}-pills`);
+    container.innerHTML = "";
+
+    if (!modes || modes.length === 0) {
+      container.innerHTML = `<span class="pill-empty">No modes found in collection</span>`;
+      return;
+    }
+
+    for (const mode of modes) {
+      const pill = document.createElement("div");
+      pill.className = `pill ${cssClass}`;
+      pill.textContent = mode;
+      pill.addEventListener("click", () => {
+        container.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        if (tier === "tier1") state.tier1Mode = mode;
+        else state.tier2Mode = mode;
+      });
+      container.appendChild(pill);
+    }
+
+    // Auto-select first mode
+    container.children[0].classList.add("active");
+    if (tier === "tier1") state.tier1Mode = modes[0];
+    else state.tier2Mode = modes[0];
+  }
+
+  // ── Gradient grid ─────────────────────────────────────────
+  function renderGradientGrid(setNames) {
+    const grid = document.getElementById("gradient-grid");
+    grid.innerHTML = "";
+
+    for (const name of setNames) {
+      const preview = GRADIENT_PREVIEWS[name];
+      const el = document.createElement("div");
+
+      if (name === "None" || !preview) {
+        el.className = "grad-swatch grad-none" + (state.gradientSet === name ? " active" : "");
+        el.textContent = "None";
+      } else {
+        el.className = "grad-swatch" + (state.gradientSet === name ? " active" : "");
+        el.style.background = preview;
+        el.innerHTML = `<div class="grad-label">${name}</div>`;
+      }
+
+      el.addEventListener("click", () => {
+        state.gradientSet = name;
+        grid.querySelectorAll(".grad-swatch").forEach(s => s.classList.remove("active"));
+        el.classList.add("active");
+      });
+      grid.appendChild(el);
+    }
+  }
+
+  // ── Scope ─────────────────────────────────────────────────
+  function setScope(scope) {
+    state.scope = scope;
+    document.getElementById("scope-page").classList.toggle("active", scope === "page");
+    document.getElementById("scope-selection").classList.toggle("active", scope === "selection");
+  }
+
+  // ── Apply ─────────────────────────────────────────────────
+  function applyTheme() {
+    const btn = document.getElementById("apply-btn");
+    btn.disabled = true;
+    btn.textContent = "Applying…";
+
+    const msg = {
+      type: "APPLY_THEME",
+      tier1CollectionId: state.tier1CollectionId,
+      tier1Mode: state.tier1Mode,
+      tier2CollectionId: state.tier2CollectionId,
+      tier2Mode: state.tier2Mode,
+      gradientSet: state.gradientSet,
+      scope: state.scope,
+      // All known sub-brand collection IDs so the backend can clear inactive ones
+      // before activating the selected brand (prevents stacked appearance entries).
+      allSubBrandIds: (state.subBrandCollections || []).map(c => c.id),
+    };
+    console.log("applyTheme sending", msg);
+
+    parent.postMessage({
+      pluginMessage: msg
+    }, "*");
+  }
+
+  // ── Log rendering ─────────────────────────────────────────
+  function renderLog(results) {
+    const log = document.getElementById("log-area");
+    log.innerHTML = "";
+    for (const r of results) {
+      const div = document.createElement("div");
+      div.className = "log-entry " + (r.success ? "ok" : "err");
+      div.textContent = r.message;
+      log.appendChild(div);
+    }
+  }
+
+  function addSingleLog(msg, type) {
+    const log = document.getElementById("log-area");
+    log.innerHTML = `<div class="log-entry ${type}">${msg}</div>`;
+  }
+
+  // ── Actions ───────────────────────────────────────────────
+  function refresh() {
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("app").style.display = "none";
+    parent.postMessage({ pluginMessage: { type: "REFRESH" } }, "*");
+  }
+
+  function setupLibrary() {
+    addSingleLog("⏳ Generating token library…", "");
+    parent.postMessage({ pluginMessage: { type: "SETUP_LIBRARY" } }, "*");
+  }
+
+  // Boot
+  parent.postMessage({ pluginMessage: { type: "INIT" } }, "*");
+</script>
+</body>
+</html>
